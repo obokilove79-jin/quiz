@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초성 퀴즈 배틀 - 아이스브레이킹용</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Orbitron for cyberpunk gaming look, Noto Sans KR for sleek Korean letters -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
+    <!-- Confetti library for high performance victory explosions -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Noto Sans KR', 'sans-serif'],
+                        cyber: ['Orbitron', 'sans-serif'],
+                    },
+                    colors: {
+                        cyber: {
+                            dark: '#0a0a16',
+                            card: '#12122c',
+                            cyan: '#00f0ff',
+                            purple: '#bd00ff',
+                            yellow: '#ffd700',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans KR', 'sans-serif';
+            background-color: #050510;
+        }
+        .cyber-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+        /* Neon glowing effects */
+        .neon-text-cyan {
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.6), 0 0 20px rgba(0, 240, 255, 0.4);
+        }
+        .neon-text-rose {
+            text-shadow: 0 0 10px rgba(244, 63, 94, 0.6), 0 0 20px rgba(244, 63, 94, 0.4);
+        }
+        .neon-text-purple {
+            text-shadow: 0 0 10px rgba(189, 0, 255, 0.6), 0 0 20px rgba(189, 0, 255, 0.4);
+        }
+        .neon-border-cyan {
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
+        }
+        /* Laser scanning animation for cards */
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+        .scanner-line {
+            animation: scan 4s linear infinite;
+        }
+        /* Cyber Hover Drones patrol animation */
+        @keyframes patrol-left {
+            0% { transform: translateY(0) translateX(0) rotate(0deg); }
+            50% { transform: translateY(-10px) translateX(25px) rotate(3deg); }
+            100% { transform: translateY(0) translateX(0) rotate(0deg); }
+        }
+        @keyframes patrol-right {
+            0% { transform: translateY(0) translateX(0) rotate(0deg); }
+            50% { transform: translateY(-15px) translateX(-25px) rotate(-3deg); }
+            100% { transform: translateY(0) translateX(0) rotate(0deg); }
+        }
+        .drone-left {
+            animation: patrol-left 5s ease-in-out infinite;
+        }
+        .drone-right {
+            animation: patrol-right 6s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body class="text-white min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-cyan-500 selection:text-black">
+
+    <header class="w-full pt-6 px-4 z-10">
+        <div class="max-w-4xl mx-auto flex flex-col items-center">
+            <!-- Grid Alignment for Title and Lightning Icons (Fixed based on image_f1c7fe.png) -->
+            <div class="flex items-center justify-center gap-3 md:gap-5 w-full text-center">
+                <!-- Left Lightning Bolt -->
+                <span class="text-cyan-400 text-3xl md:text-4xl filter drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse shrink-0">⚡</span>
+                
+                <!-- Main Cyber Title -->
+                <h1 class="cyber-font font-black text-3xl sm:text-4xl md:text-5xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 select-none">
+                    BRAIN CHALLENGE
+                </h1>
+                
+                <!-- Right Lightning Bolt -->
+                <span class="text-purple-400 text-3xl md:text-4xl filter drop-shadow-[0_0_8px_rgba(192,132,252,0.8)] animate-pulse shrink-0">⚡</span>
+            </div>
+            
+            <!-- Focused Subtitle for students -->
+            <p class="text-cyan-400/90 font-bold text-base sm:text-lg md:text-xl tracking-wider mt-2.5 neon-text-cyan">
+                초성 퀴즈 집중!
+            </p>
+        </div>
+    </header>
+
+    <main class="flex-grow flex items-center justify-center px-4 py-6 w-full max-w-4xl mx-auto z-10">
+        
+        <!-- STAGE 1: INTRO / LOBBY SCREEN -->
+        <div id="intro-screen" class="w-full bg-indigo-950/20 backdrop-blur-md p-6 md:p-10 rounded-3xl border-2 border-cyan-500/30 neon-border-cyan flex flex-col items-center relative overflow-hidden">
+            <!-- Scanner line background effect -->
+            <div class="absolute inset-x-0 h-0.5 bg-cyan-500/20 scanner-line left-0 w-full pointer-events-none"></div>
+            
+            <div class="text-center mb-8">
+                <span class="bg-indigo-950/80 text-cyan-400 text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border border-cyan-500/40">
+                    BATTLE LOBBY
+                </span>
+                <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold mt-4 tracking-tight leading-snug">
+                    아이스브레이킹 초성 대전
+                </h2>
+                <!-- Removed "5학년 전용" phrase per request and adjusted referencing image_f1c0a0.png -->
+                <p class="text-slate-400 mt-2 text-sm md:text-base">
+                    하이테크 초성 해독 미션. 준비되었는가?
+                </p>
+            </div>
+
+            <!-- Quiz Specs Dashboard -->
+            <div class="grid grid-cols-2 gap-4 w-full max-w-md mb-8">
+                <div class="bg-indigo-950/40 p-4 rounded-2xl border border-indigo-900 text-center">
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">총 문제 수</p>
+                    <p class="cyber-font text-2xl font-black text-cyan-400 mt-1">10 STAGES</p>
+                </div>
+                <div class="bg-indigo-950/40 p-4 rounded-2xl border border-indigo-900 text-center">
+                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">보너스 힌트</p>
+                    <p class="cyber-font text-2xl font-black text-rose-500 mt-1">NO HINT</p>
+                </div>
+            </div>
+
+            <!-- Developer Badge -->
+            <div class="mb-8 flex items-center gap-2 bg-purple-950/30 px-5 py-2 rounded-xl border border-purple-500/20">
+                <span class="text-purple-400 font-bold text-xs tracking-wider">CREATOR:</span>
+                <span class="text-purple-300 font-extrabold text-sm tracking-widest">양경진</span>
+            </div>
+
+            <button onclick="startGame()" class="w-full max-w-sm py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-black font-black text-xl rounded-2xl shadow-lg transition duration-300 transform hover:-translate-y-1 hover:scale-105 tracking-widest uppercase">
+                MISSION START
+            </button>
+        </div>
+
+        <!-- STAGE 2: GAMEPLAY SCREEN -->
+        <div id="game-screen" class="hidden flex-col justify-between flex-grow w-full">
+            <!-- Top Status Bar -->
+            <div class="flex justify-between items-center pb-4 border-b border-indigo-950">
+                <span id="quiz-category" class="bg-indigo-950/80 text-cyan-400 text-sm md:text-base px-4 py-1.5 rounded-full border border-cyan-500/30 font-bold tracking-wider">
+                    CATEGORY: LOADING
+                </span>
+                <span id="quiz-progress" class="cyber-font text-purple-400 text-sm md:text-base font-bold tracking-widest">
+                    01 / 10
+                </span>
+            </div>
+
+            <!-- Glowing Digital Countdown Timer (New feature!) -->
+            <div class="w-full my-4">
+                <div class="flex justify-between items-center mb-1">
+                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">SYSTEM TIMER</span>
+                    <span id="timer-text" class="cyber-font font-black text-xl text-cyan-400 neon-text-cyan animate-pulse">15s</span>
+                </div>
+                <div class="w-full bg-indigo-950/80 h-3 rounded-full overflow-hidden border border-indigo-900/60 p-0.5">
+                    <div id="timer-bar" class="bg-gradient-to-r from-cyan-400 to-purple-500 h-full w-full rounded-full transition-all duration-300"></div>
+                </div>
+            </div>
+
+            <!-- Problem/Answer Area -->
+            <div class="flex flex-col items-center justify-center flex-grow my-4 text-center relative min-h-[300px]">
+                <!-- Question Box (Extra Large Consonants) -->
+                <div id="question-box" class="block w-full">
+                    <p class="text-slate-500 text-xs md:text-sm uppercase tracking-widest mb-4">DECRYPT THE CONSONANTS</p>
+                    <h2 id="consonant-text" class="text-7xl sm:text-8xl md:text-9xl tracking-widest text-cyan-400 font-black filter drop-shadow-[0_0_20px_rgba(34,211,238,0.7)] select-none">
+                        - - -
+                    </h2>
+                </div>
+
+                <!-- Answer Reveal Box (Extra Large Answer & Emoji) -->
+                <div id="answer-box" class="hidden flex-col items-center w-full">
+                    <div id="answer-emoji" class="text-8xl md:text-9xl mb-4 filter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] select-none">❓</div>
+                    <h2 id="answer-text" class="text-6xl sm:text-7xl md:text-8xl text-rose-400 font-black neon-text-rose tracking-wider leading-tight">
+                        정답단어
+                    </h2>
+                    <p id="timeout-banner" class="text-red-500 font-bold text-lg mt-4 uppercase tracking-widest animate-bounce hidden">⚠️ TIME OVER ⚠️</p>
+                </div>
+            </div>
+
+            <!-- Cyber Hover Drones (Drones patrol during active question) -->
+            <div id="drones-dock" class="w-full relative h-20 overflow-hidden mb-6 bg-indigo-950/10 border border-indigo-900/40 rounded-2xl">
+                <!-- Drone 1 (Cyan Wing) -->
+                <div class="drone-left absolute left-10 top-2 flex flex-col items-center">
+                    <div class="bg-cyan-500 text-black text-[10px] font-black px-2 py-0.5 rounded-md mb-1 shadow-md">PATROL-01</div>
+                    <svg class="w-10 h-10 text-cyan-400 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/>
+                    </svg>
+                    <!-- Jet thrust light -->
+                    <div class="w-1.5 h-3 bg-cyan-400 rounded-full animate-bounce mt-1"></div>
+                </div>
+                
+                <!-- Drone 2 (Purple Wing) -->
+                <div class="drone-right absolute right-14 top-4 flex flex-col items-center">
+                    <div class="bg-purple-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md mb-1 shadow-md">DEFENSE-02</div>
+                    <svg class="w-10 h-10 text-purple-400 fill-current" viewBox="0 0 24 24">
+                        <path d="M12 2L2 22h20L12 2zm0 3.99L19.53 19H4.47L12 5.99zM13 16h-2v2h2v-2zm0-6h-2v4h2v-4z"/>
+                    </svg>
+                    <!-- Jet thrust light -->
+                    <div class="w-1.5 h-3 bg-purple-500 rounded-full animate-bounce mt-1"></div>
+                </div>
+            </div>
+
+            <!-- Controls Interface -->
+            <div class="grid grid-cols-2 gap-4">
+                <!-- Submit Action (Reveals Answer) -->
+                <button id="btn-reveal" onclick="revealAnswer()" class="col-span-2 py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-black text-xl rounded-2xl shadow-lg transition transform hover:-translate-y-1 tracking-widest flex justify-center items-center gap-2">
+                    <span>🔓</span> DECRYPT (정답 확인)
+                </button>
+                
+                <!-- Next Mission -->
+                <button id="btn-next" onclick="nextStage()" class="hidden col-span-2 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xl rounded-2xl shadow-lg transition transform hover:-translate-y-1 tracking-widest flex justify-center items-center gap-2">
+                    <span>NEXT MISSION ▶</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- STAGE 3: MISSION COMPLETE / RESULT SCREEN -->
+        <div id="result-screen" class="hidden w-full bg-indigo-950/20 backdrop-blur-md p-6 md:p-10 rounded-3xl border-2 border-purple-500/40 neon-border-cyan flex flex-col items-center relative overflow-hidden text-center">
+            <div class="absolute inset-x-0 h-0.5 bg-purple-500/20 scanner-line left-0 w-full pointer-events-none"></div>
+            
+            <div class="mb-6">
+                <span class="bg-purple-950/80 text-purple-300 text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border border-purple-500/40">
+                    MISSION COMPLETE
+                </span>
+                <h2 class="text-4xl sm:text-5xl font-black text-cyan-400 mt-6 tracking-widest filter drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">
+                    ALL CLEARED
+                </h2>
+                <p class="text-slate-300 mt-3 text-base">
+                    모든 스테이지 해독 완료! 미션 성공!
+                </p>
+            </div>
+
+            <div class="my-6">
+                <div class="text-8xl animate-bounce">🏆</div>
+            </div>
+
+            <button onclick="restartGame()" class="w-full max-w-sm py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-black font-black text-xl rounded-2xl shadow-lg transition duration-300 transform hover:-translate-y-1 tracking-widest">
+                SYSTEM REBOOT (다시 시작)
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer credits with Developer information -->
+    <footer class="w-full pb-6 px-4 text-center z-10 text-xs text-slate-500 tracking-wider">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 border-t border-indigo-950/40 pt-4">
+            <p class="cyber-font">STATUS: STABLE_CYBER_ENVIRONMENT_V1.2</p>
+        </div>
+    </footer>
+
+    <script>
+        // Quiz Database customized with requested terms (10 total)
+        const quizDatabase = [
+            { consonant: 'ㄷㅎㅁㄱ', answer: '대한민국', category: '나라 이름', emoji: '🇰🇷' },
+            { consonant: 'ㅁㄱ', answer: '미국', category: '나라 이름', emoji: '🇺🇸' },
+            { consonant: 'ㅇㅂ', answer: '일본', category: '나라 이름', emoji: '🇯🇵' },
+            { consonant: 'ㅍㄹㅅ', answer: '프랑스', category: '나라 이름', emoji: '🇫🇷' },
+            { consonant: 'ㅅㄱ', answer: '사과', category: '과일 이름', emoji: '🍎' },
+            { consonant: 'ㅂㄴㄴ', answer: '바나나', category: '과일 이름', emoji: '🍌' },
+            { consonant: 'ㅅㅂ', answer: '수박', category: '과일 이름', emoji: '🍉' },
+            { consonant: 'ㅇㄱㅈㄴ', answer: '인공지능', category: '테크 & 코딩', emoji: '🤖' },
+            { consonant: 'ㅋㄷ', answer: '코딩', category: '테크 & 코딩', emoji: '💻' },
+            { consonant: 'ㅇㅌㄹ', answer: '엔트리', category: '테크 & 코딩', emoji: '👾' }
+        ];
+
+        let activeQuizList = []; // Shuffled list
+        let currentStageIndex = 0;
+        let isRevealed = false;
+        let audioContext = null;
+
+        // Timer State Variables
+        let timerInterval = null;
+        const INITIAL_TIME = 15; // 15 seconds limit
+        let timeLeft = INITIAL_TIME;
+
+        // Fisher-Yates Shuffle algorithm for true randomness
+        function shuffleQuiz(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // Initialize Audio Context on demand
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        // 1. Tick Sound Effect ("띠" - 8bit styled crisp tick)
+        function playTickSound(isUrgent) {
+            initAudio();
+            if (!audioContext) return;
+
+            const now = audioContext.currentTime;
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            osc.type = 'sine';
+            // Urgent gets a higher pitch beep to alarm students
+            osc.frequency.setValueAtTime(isUrgent ? 1300 : 880, now);
+
+            gain.gain.setValueAtTime(0.06, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+
+            osc.start(now);
+            osc.stop(now + 0.1);
+        }
+
+        // 2. Victory Sound Effect ("예!!!" - Sci-Fi retro chord sweep)
+        function playVictorySound() {
+            initAudio();
+            if (!audioContext) return;
+
+            const now = audioContext.currentTime;
+            
+            // Retro arcade heroic sweep notes
+            const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
+            
+            notes.forEach((freq, index) => {
+                const osc = audioContext.createOscillator();
+                const gain = audioContext.createGain();
+                
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(freq, now + index * 0.06);
+                
+                gain.gain.setValueAtTime(0.12, now + index * 0.06);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.06 + 0.4);
+                
+                osc.connect(gain);
+                gain.connect(audioContext.destination);
+                
+                osc.start(now + index * 0.06);
+                osc.stop(now + index * 0.06 + 0.5);
+            });
+
+            // Energetic laser synth sweep for modern exclamation
+            const laserOsc = audioContext.createOscillator();
+            const laserGain = audioContext.createGain();
+            
+            laserOsc.type = 'sawtooth';
+            laserOsc.frequency.setValueAtTime(150, now);
+            laserOsc.frequency.exponentialRampToValueAtTime(1300, now + 0.3);
+            
+            laserGain.gain.setValueAtTime(0.08, now);
+            laserGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            
+            laserOsc.connect(laserGain);
+            laserGain.connect(audioContext.destination);
+            
+            laserOsc.start(now);
+            laserOsc.stop(now + 0.35);
+        }
+
+        // 3. Buzz Sound Effect (For Timeout State)
+        function playBuzzerSound() {
+            initAudio();
+            if (!audioContext) return;
+
+            const now = audioContext.currentTime;
+            const osc1 = audioContext.createOscillator();
+            const osc2 = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+
+            osc1.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(110, now);
+            osc2.type = 'sawtooth';
+            osc2.frequency.setValueAtTime(112, now); // Detuned fat synth bass feel
+
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.linearRampToValueAtTime(0.001, now + 0.5);
+
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(audioContext.destination);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.55);
+            osc2.stop(now + 0.55);
+        }
+
+        // Victory celebration confetti trigger
+        function triggerConfetti() {
+            const count = 200;
+            const defaults = {
+                origin: { y: 0.8 },
+                zIndex: 1000
+            };
+
+            function fire(particleRatio, opts) {
+                confetti({
+                    ...defaults,
+                    ...opts,
+                    particleCount: Math.floor(count * particleRatio)
+                });
+            }
+
+            fire(0.25, {
+                spread: 26,
+                startVelocity: 55,
+            });
+            fire(0.2, {
+                spread: 60,
+            });
+            fire(0.35, {
+                spread: 100,
+                decay: 0.91,
+                scalar: 0.8
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 25,
+                decay: 0.92,
+                scalar: 1.2
+            });
+            fire(0.1, {
+                spread: 120,
+                startVelocity: 45,
+            });
+        }
+
+        // Starts the live interactive ticking timer
+        function startTimer() {
+            clearInterval(timerInterval);
+            timeLeft = INITIAL_TIME;
+            
+            // Reset UI Style
+            const timerBar = document.getElementById('timer-bar');
+            const timerText = document.getElementById('timer-text');
+            
+            timerBar.style.width = '100%';
+            timerBar.className = "bg-gradient-to-r from-cyan-400 to-purple-500 h-full w-full rounded-full transition-all duration-300";
+            timerText.textContent = `${timeLeft}s`;
+            timerText.className = "cyber-font font-black text-xl text-cyan-400 neon-text-cyan animate-pulse";
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                timerText.textContent = `${timeLeft}s`;
+                
+                // Shrink progress bar
+                const percentage = (timeLeft / INITIAL_TIME) * 100;
+                timerBar.style.width = `${percentage}%`;
+
+                if (timeLeft <= 5 && timeLeft > 0) {
+                    // Fast warning state (Under 5s)
+                    timerText.className = "cyber-font font-black text-xl text-rose-500 neon-text-rose animate-ping";
+                    timerBar.className = "bg-rose-500 h-full w-full rounded-full transition-all duration-300";
+                    playTickSound(true); // High pitch tick
+                } else if (timeLeft > 5) {
+                    playTickSound(false); // Normal tick "tti"
+                }
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    handleTimeOut();
+                }
+            }, 1000);
+        }
+
+        // Handles scenario when countdown hits 0 seconds
+        function handleTimeOut() {
+            playBuzzerSound();
+            revealAnswer(true); // Automatically trigger reveal with true signifying timeout
+        }
+
+        // Start the main game loop
+        function startGame() {
+            initAudio();
+            document.getElementById('intro-screen').classList.add('hidden');
+            document.getElementById('game-screen').classList.remove('hidden');
+            document.getElementById('game-screen').classList.add('flex');
+            
+            // Randomly shuffle quiz list so it is unique every time
+            activeQuizList = shuffleQuiz(quizDatabase);
+            currentStageIndex = 0;
+            loadStage(currentStageIndex);
+        }
+
+        // Load specific stage data
+        function loadStage(index) {
+            isRevealed = false;
+            const data = activeQuizList[index];
+            
+            // Reset Timeout Banner
+            document.getElementById('timeout-banner').classList.add('hidden');
+
+            // Set text contents
+            document.getElementById('quiz-category').textContent = `CATEGORY: ${data.category}`;
+            document.getElementById('quiz-progress').textContent = `${String(index + 1).padStart(2, '0')} / ${String(activeQuizList.length).padStart(2, '0')}`;
+            document.getElementById('consonant-text').textContent = data.consonant;
+            document.getElementById('answer-text').textContent = data.answer;
+            document.getElementById('answer-emoji').textContent = data.emoji;
+
+            // Reset UI Visibility
+            document.getElementById('question-box').style.display = 'block';
+            document.getElementById('answer-box').classList.add('hidden');
+            document.getElementById('answer-box').classList.remove('flex');
+            document.getElementById('drones-dock').style.display = 'block'; // Show hover drones
+            
+            document.getElementById('btn-reveal').classList.remove('hidden');
+            document.getElementById('btn-next').classList.add('hidden');
+
+            // Start countdown timer for the new slide
+            startTimer();
+        }
+
+        // Reveal correct answer
+        function revealAnswer(isTimeOver = false) {
+            if (isRevealed) return;
+            isRevealed = true;
+
+            // Stop ticking timer immediately
+            clearInterval(timerInterval);
+
+            // Display Transition
+            document.getElementById('question-box').style.display = 'none';
+            document.getElementById('answer-box').classList.remove('hidden');
+            document.getElementById('answer-box').classList.add('flex');
+            document.getElementById('drones-dock').style.display = 'none'; // Hide drones to prioritize answer view
+
+            if (isTimeOver) {
+                document.getElementById('timeout-banner').classList.remove('hidden');
+            } else {
+                // If clicked manually prior to timeout: Celebrate with Synth and Confetti!
+                playVictorySound();
+                triggerConfetti();
+            }
+
+            // Control Buttons Switch
+            document.getElementById('btn-reveal').classList.add('hidden');
+            document.getElementById('btn-next').classList.remove('hidden');
+        }
+
+        // Advance to next stage or finish
+        function nextStage() {
+            currentStageIndex++;
+            if (currentStageIndex < activeQuizList.length) {
+                loadStage(currentStageIndex);
+            } else {
+                showResults();
+            }
+        }
+
+        // Display game completion screen
+        function showResults() {
+            clearInterval(timerInterval);
+            document.getElementById('game-screen').classList.remove('flex');
+            document.getElementById('game-screen').classList.add('hidden');
+            document.getElementById('result-screen').classList.remove('hidden');
+            
+            // Massive confetti burst upon finishing all stages
+            let duration = 3 * 1000;
+            let end = Date.now() + duration;
+
+            (function frame() {
+                confetti({
+                    particleCount: 5,
+                    angle: 60,
+                    spread: 55,
+                    origin: { x: 0 }
+                });
+                confetti({
+                    particleCount: 5,
+                    angle: 120,
+                    spread: 55,
+                    origin: { x: 1 }
+                });
+
+                if (Date.now() < end) {
+                    requestAnimationFrame(frame);
+                }
+            }());
+        }
+
+        // Reset game to lobby
+        function restartGame() {
+            document.getElementById('result-screen').classList.add('hidden');
+            document.getElementById('intro-screen').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
