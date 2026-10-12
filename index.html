@@ -1,603 +1,758 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>초성 퀴즈 배틀 - 아이스브레이킹용</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Orbitron for cyberpunk gaming look, Noto Sans KR for sleek Korean letters -->
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&family=Orbitron:wght@600;800;900&display=swap" rel="stylesheet">
-    <!-- Confetti library for high performance victory explosions -->
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="토리 코딩">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#CDEBFF">
+<meta name="format-detection" content="telephone=no">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Ctext y=%27.9em%27 font-size=%2790%27%3E%F0%9F%90%B0%3C/text%3E%3C/svg%3E">
+<title>토리의 코딩 놀이터</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap">
+<style>
+/* 레이아웃: 상단 진행바 + 한 화면짜리 게임 무대. 태블릿 가로(보드 왼쪽, 버튼 오른쪽)와 세로(위아래)에 모두 맞춤.
+   밝은 하늘 + 풀밭 한 가지 세계관으로 가기 때문에 라이트 한 가지 테마로만 만들었어요. */
+:root{
+  --sky:#CDEBFF; --sky-2:#A9DAF7; --sky-3:#EAF7FF;
+  --grass:#8ED36B; --grass-2:#5FB24C;
+  --ink:#1D2B48; --ink-2:#51608A;
+  --card:#FFFFFF; --glass:#FFFFFFC4;
+  --sun:#FFC247; --sun-2:#E88F00;
+  --pink:#FF5C8D; --pink-soft:#FFD9E5;
+  --ok:#4CCB86; --ok-soft:#D2F5E2;
+  --warn:#F2552C; --warn-soft:#FFE1D8;
+  --cell-a:#FFF4CF; --cell-b:#FFE7A3;
+  --font-display:'Jua','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  --font-body:'Gowun Dodum','Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  color-scheme:light;
+}
+html{height:100%}
+body{
+  height:100%; box-sizing:border-box;
+  padding-inline:16px; padding-block:10px;
+  background:linear-gradient(var(--sky) 0%, var(--sky-3) 75%);
+  color:var(--ink); font-family:var(--font-body); font-size:18px;
+  overflow:hidden; touch-action:manipulation; -webkit-user-select:none; user-select:none;
+}
+button{font:inherit; color:inherit; cursor:pointer; touch-action:manipulation; -webkit-tap-highlight-color:transparent; padding:0}
+button:focus-visible{outline:4px solid var(--pink); outline-offset:3px}
+button:disabled{cursor:default}
+h1,h2,p{margin:0}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{overscroll-behavior:none; -webkit-touch-callout:none}
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Noto Sans KR', 'sans-serif'],
-                        cyber: ['Orbitron', 'sans-serif'],
-                    },
-                    colors: {
-                        cyber: {
-                            dark: '#0a0a16',
-                            card: '#12122c',
-                            cyan: '#00f0ff',
-                            purple: '#bd00ff',
-                            yellow: '#ffd700',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        body {
-            font-family: 'Noto Sans KR', 'sans-serif';
-            background-color: #050510;
-        }
-        .cyber-font {
-            font-family: 'Orbitron', sans-serif;
-        }
-        /* Neon glowing effects */
-        .neon-text-cyan {
-            text-shadow: 0 0 10px rgba(0, 240, 255, 0.6), 0 0 20px rgba(0, 240, 255, 0.4);
-        }
-        .neon-text-rose {
-            text-shadow: 0 0 10px rgba(244, 63, 94, 0.6), 0 0 20px rgba(244, 63, 94, 0.4);
-        }
-        .neon-text-purple {
-            text-shadow: 0 0 10px rgba(189, 0, 255, 0.6), 0 0 20px rgba(189, 0, 255, 0.4);
-        }
-        .neon-border-cyan {
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.35);
-        }
-        /* Laser scanning animation for cards */
-        @keyframes scan {
-            0% { top: 0%; }
-            50% { top: 100%; }
-            100% { top: 0%; }
-        }
-        .scanner-line {
-            animation: scan 4s linear infinite;
-        }
-        /* Cyber Hover Drones patrol animation */
-        @keyframes patrol-left {
-            0% { transform: translateY(0) translateX(0) rotate(0deg); }
-            50% { transform: translateY(-10px) translateX(25px) rotate(3deg); }
-            100% { transform: translateY(0) translateX(0) rotate(0deg); }
-        }
-        @keyframes patrol-right {
-            0% { transform: translateY(0) translateX(0) rotate(0deg); }
-            50% { transform: translateY(-15px) translateX(-25px) rotate(-3deg); }
-            100% { transform: translateY(0) translateX(0) rotate(0deg); }
-        }
-        .drone-left {
-            animation: patrol-left 5s ease-in-out infinite;
-        }
-        .drone-right {
-            animation: patrol-right 6s ease-in-out infinite;
-        }
-    </style>
+.hills{
+  position:fixed; left:0; right:0; bottom:0; height:22vh; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(120% 100% at 18% 100%, var(--grass) 0 54%, transparent 55%),
+    radial-gradient(120% 100% at 88% 112%, var(--grass-2) 0 54%, transparent 55%);
+}
+#app{position:relative; z-index:1; display:flex; flex-direction:column; gap:10px; height:100%; max-width:1100px; margin-inline:auto}
+
+/* 상단 진행바 */
+.topbar{display:flex; align-items:center; gap:10px 14px; flex-wrap:wrap}
+.brand{display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-size:clamp(20px,3vw,28px)}
+.brand .e{font-size:1.4em}
+.steps{display:flex; gap:8px; list-style:none; margin:0 auto; padding:0}
+.step{display:flex; align-items:center; gap:6px; padding:6px 14px; border:3px solid var(--ink); border-radius:999px; background:var(--glass); font-family:var(--font-display); font-size:18px}
+.step .ic{font-size:22px}
+.step.now{background:var(--sun)}
+.step.done{background:var(--ok-soft)}
+.step.done::after{content:'✓'; font-size:18px}
+.topright{display:flex; align-items:center; gap:8px}
+.score{font-family:var(--font-display); font-size:24px; padding:4px 16px; border:3px solid var(--ink); border-radius:999px; background:var(--card); min-width:78px; text-align:center}
+.lvchip{font-family:var(--font-display); font-size:22px; padding:4px 14px; border:3px solid var(--ink); border-radius:999px; background:var(--ok-soft); white-space:nowrap}
+.icon-btn{width:54px; height:54px; border-radius:50%; border:3px solid var(--ink); background:var(--card); font-size:24px; display:grid; place-items:center}
+.icon-btn:active{background:var(--sun)}
+
+/* 선생님 메뉴: 화면 오른쪽 아래의 작은 두 줄 박스 */
+.teacherbox{align-self:flex-end; display:grid; grid-template-columns:auto auto; gap:6px 10px; align-items:center; padding:8px 12px; background:var(--card); border:3px solid var(--ink); border-radius:16px; box-shadow:0 4px 0 var(--ink)}
+.tlabel{grid-row:1 / span 2; font-family:var(--font-display); font-size:15px; line-height:1.25; color:var(--ink-2); text-align:center}
+.trow{display:flex; gap:6px}
+.tbtn{flex:1; min-height:38px; padding:4px 12px; border:2px solid var(--ink); border-radius:10px; background:var(--sky-3); font-family:var(--font-display); font-size:16px; white-space:nowrap}
+.tbtn:active{background:var(--sun)}
+
+/* 무대 */
+.stage{flex:1; min-height:0; overflow:hidden; display:flex; flex-direction:column; padding-bottom:12px}
+
+/* 공통 버튼 */
+.btn{
+  font-family:var(--font-display); font-size:clamp(24px,3.6vw,34px); line-height:1.1;
+  min-height:72px; padding:12px 34px; border:4px solid var(--ink); border-radius:24px;
+  background:var(--sun); color:var(--ink); box-shadow:0 6px 0 var(--ink);
+}
+.btn:active{transform:translateY(5px); box-shadow:0 1px 0 var(--ink)}
+.btn.go{background:var(--ok)}
+.btn.small{min-height:68px; min-width:68px; padding:8px 18px; font-size:26px; background:var(--card)}
+
+/* 패널(시작·끝) */
+.panel{box-sizing:border-box; margin:auto; width:100%; max-width:720px; display:flex; flex-direction:column; align-items:center; gap:16px; text-align:center;
+  padding:clamp(18px,3vw,34px); background:var(--card); border:4px solid var(--ink); border-radius:32px; box-shadow:0 8px 0 var(--ink)}
+.panel h1{font-family:var(--font-display); font-weight:400; font-size:clamp(34px,6vw,56px); line-height:1.15}
+.panel h2{font-family:var(--font-display); font-weight:400; font-size:clamp(30px,5vw,46px); line-height:1.15}
+.lead{font-size:clamp(18px,2.6vw,24px); color:var(--ink-2); line-height:1.5; text-wrap:balance}
+.big-ic{font-size:clamp(70px,14vw,120px); line-height:1; animation:bob 2s ease-in-out infinite}
+.trio{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.trio-i{display:flex; flex-direction:column; align-items:center; gap:2px; min-width:96px; padding:10px 14px; border:3px solid var(--ink); border-radius:20px; background:var(--cell-a); font-size:34px}
+.trio-i small{font-size:16px; font-family:var(--font-display)}
+.levels{display:flex; gap:12px; flex-wrap:wrap; justify-content:center}
+.lvl{min-width:108px; min-height:88px; padding:8px 14px; border:4px solid var(--ink); border-radius:22px; background:var(--card); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; font-family:var(--font-display); font-size:22px}
+.lvl small{font-size:17px; color:var(--ink-2)}
+.lvl span{font-size:36px; line-height:1}
+.lvtag{font-family:var(--font-display); font-size:22px; padding:4px 16px; border:3px solid var(--ink); border-radius:999px; background:var(--ok-soft)}
+.lvl.on{background:var(--sun); box-shadow:0 6px 0 var(--ink); transform:translateY(-3px)}
+.lvl.on small{color:var(--ink)}
+.starrow{font-family:var(--font-display); font-size:clamp(34px,6vw,54px)}
+
+.results{display:grid; gap:10px; width:100%}
+.res{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 18px; border:3px solid var(--ink); border-radius:20px; background:var(--cell-a); font-family:var(--font-display); font-size:clamp(20px,3vw,26px)}
+.res .l{display:flex; align-items:center; gap:10px}
+.res .ic{font-size:34px}
+.parade{display:flex; gap:8px; font-size:clamp(34px,7vw,56px)}
+.parade span{display:inline-block; animation:hop 1s ease-in-out infinite; animation-delay:calc(var(--i) * .12s)}
+
+/* 게임 공통 */
+.game{display:flex; flex-direction:column; gap:12px; flex:1; min-height:0}
+.gamehead{display:flex; align-items:center; gap:12px 16px; flex-wrap:wrap}
+.bubble{flex:1 1 300px; display:flex; align-items:center; gap:12px; padding:8px 12px 8px 14px; background:var(--card); border:4px solid var(--ink); border-radius:26px; font-family:var(--font-display); font-size:clamp(20px,3vw,30px); line-height:1.25; transition:background .2s}
+.bubble.ok{background:var(--ok-soft)}
+.bubble.no{background:var(--warn-soft)}
+.bubble .who{font-size:clamp(34px,5vw,46px)}
+.bubble .msg{flex:1; text-wrap:balance}
+.dots{display:flex; gap:8px}
+.dots i{width:20px; height:20px; border-radius:50%; border:3px solid var(--ink); background:var(--card)}
+.dots i.on{background:var(--sun)}
+.dots i.cur{background:var(--sky-2)}
+.play{flex:1; position:relative; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:clamp(16px,4vh,38px)}
+.play.path,.play.bug{flex-direction:row; flex-wrap:wrap; gap:clamp(14px,3vw,34px)}
+.ctrl{display:flex; flex-direction:column; align-items:center; gap:14px; min-width:0}
+.earned{position:absolute; left:50%; top:42%; z-index:5; pointer-events:none; font-size:clamp(46px,10vw,92px); animation:floatup 1.4s ease-out forwards; white-space:nowrap}
+
+/* 패턴 */
+.seq{box-sizing:border-box; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; max-width:100%; padding:16px; background:var(--card); border:4px solid var(--ink); border-radius:28px; box-shadow:0 7px 0 var(--ink)}
+.item{width:clamp(46px,9vw,88px); aspect-ratio:1; display:grid; place-items:center; font-size:clamp(28px,6vw,58px); border-radius:18px; background:var(--cell-a)}
+.item.q{background:var(--pink-soft); border:4px dashed var(--pink); animation:blink 1.2s ease-in-out infinite}
+.item.pop{animation:pop .5s ease-out}
+.options{display:flex; gap:clamp(12px,3vw,28px); justify-content:center}
+.opt{width:clamp(92px,20vw,150px); aspect-ratio:1; font-size:clamp(46px,9vw,80px); background:var(--card); border:4px solid var(--ink); border-radius:30px; box-shadow:0 7px 0 var(--ink); display:grid; place-items:center}
+.opt:active:not(:disabled){transform:translateY(5px); box-shadow:0 2px 0 var(--ink)}
+.opt.right{background:var(--ok-soft); animation:pop .5s ease-out}
+.opt.wrong{opacity:.35; animation:shake .4s}
+
+/* 보드 */
+.board{
+  --bs:min(86vw,44vh,430px);
+  width:var(--bs); height:var(--bs); flex:none; position:relative;
+  display:grid; grid-template-columns:repeat(var(--n),1fr); grid-template-rows:repeat(var(--n),1fr);
+  border:4px solid var(--ink); border-radius:20px; overflow:hidden; background:var(--cell-a); box-shadow:0 7px 0 var(--ink);
+}
+.cell{display:grid; place-items:center; font-size:calc(var(--bs) / var(--n) * .58); background:var(--cell-a)}
+.cell.alt{background:var(--cell-b)}
+.cell.start{background:var(--ok-soft)}
+.cell.goal{background:var(--pink-soft)}
+.cell .rt{font-size:.5em; line-height:1; opacity:.85}
+.robot{
+  position:absolute; left:0; top:0; width:calc(100% / var(--n)); height:calc(100% / var(--n));
+  display:grid; place-items:center; font-size:calc(var(--bs) / var(--n) * .62); pointer-events:none;
+  transform:translate(calc(var(--c) * 100%), calc(var(--r) * 100%)); transition:transform .32s cubic-bezier(.3,1.3,.5,1);
+}
+.robot span{display:block; line-height:1}
+.robot.hop span{animation:hop .35s ease-out}
+.robot.bump span{animation:bumpa .45s ease-out}
+
+/* 명령 칸·화살표 */
+.slots{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; max-width:min(92vw,340px)}
+.slot{width:clamp(40px,7vw,56px); aspect-ratio:1; display:grid; place-items:center; font-size:clamp(22px,4vw,32px); background:var(--card); border:3px dashed var(--ink-2); border-radius:12px}
+.slot.full{border-style:solid; border-color:var(--ink)}
+.slot.cur{background:var(--sun); transform:scale(1.14)}
+.slot.seen{background:var(--ok-soft)}
+.slot.bad{background:var(--warn-soft); border-color:var(--warn)}
+.dpad{display:grid; grid-template-columns:repeat(3,clamp(84px,13vw,104px)); grid-auto-rows:clamp(84px,13vw,104px); gap:10px; grid-template-areas:". up ." "left down right"}
+.arrow{border:4px solid var(--ink); border-radius:24px; background:var(--card); font-size:clamp(34px,6vw,48px); box-shadow:0 6px 0 var(--ink); display:grid; place-items:center}
+.arrow:active{transform:translateY(5px); box-shadow:0 1px 0 var(--ink); background:var(--sun)}
+.arrow.up{grid-area:up} .arrow.down{grid-area:down} .arrow.left{grid-area:left} .arrow.right{grid-area:right}
+.actions{display:flex; gap:12px; align-items:center; flex-wrap:wrap; justify-content:center}
+.picker{display:flex; gap:10px; flex-wrap:wrap; justify-content:center}
+.picker .arrow{width:clamp(78px,12vw,96px); height:clamp(78px,12vw,96px)}
+.shake{animation:shake .4s}
+
+/* 버그 카드 */
+.cards{display:flex; gap:10px; flex-wrap:wrap; justify-content:center; max-width:min(92vw,640px)}
+.card{position:relative; width:clamp(72px,12vw,100px); aspect-ratio:1; display:grid; place-items:center; font-size:clamp(34px,6vw,50px); background:var(--card); border:4px solid var(--ink); border-radius:22px; box-shadow:0 6px 0 var(--ink)}
+.card small{position:absolute; top:3px; left:9px; font-family:var(--font-display); font-size:16px; color:var(--ink-2)}
+.card.cur{background:var(--sun); transform:translateY(-6px)}
+.card.bugged{background:var(--warn-soft); animation:wiggle .5s ease-in-out infinite}
+.card.fine{opacity:.4}
+.card.fixed{background:var(--ok-soft)}
+
+#fx{position:fixed; inset:0; pointer-events:none; z-index:50; overflow:hidden}
+.bit{position:fixed; font-size:28px; animation:fly .95s ease-out forwards}
+
+@keyframes pop{0%{transform:scale(.4)}60%{transform:scale(1.25)}100%{transform:scale(1)}}
+@keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(10px)}60%{transform:translateX(-7px)}80%{transform:translateX(7px)}}
+@keyframes blink{50%{background:var(--card)}}
+@keyframes bob{50%{transform:translateY(-10px)}}
+@keyframes hop{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+@keyframes wiggle{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes bumpa{0%,100%{transform:translateX(0) rotate(0)}25%{transform:translateX(-8px) rotate(-12deg)}50%{transform:translateX(8px) rotate(12deg)}75%{transform:translateX(-4px) rotate(-6deg)}}
+@keyframes floatup{0%{opacity:0; transform:translate(-50%,-30%) scale(.5)}20%{opacity:1; transform:translate(-50%,-50%) scale(1.1)}80%{opacity:1}100%{opacity:0; transform:translate(-50%,-120%) scale(1)}}
+@keyframes fly{from{opacity:1; transform:translate(0,0) scale(.6)}to{opacity:0; transform:translate(var(--dx),var(--dy)) scale(1.3)}}
+
+@media (min-aspect-ratio:5/4){ .board{--bs:min(40vw,60vh,460px)} }
+@media (max-width:560px){ .step .nm{display:none} .step{padding:6px 10px} .brand .t{display:none} }
+@media (prefers-reduced-motion:reduce){ *{animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important} }
+</style>
+<style>body{margin:0}</style>
 </head>
-<body class="text-white min-h-screen flex flex-col justify-between overflow-x-hidden selection:bg-cyan-500 selection:text-black">
+<body>
 
-    <header class="w-full pt-6 px-4 z-10">
-        <div class="max-w-4xl mx-auto flex flex-col items-center">
-            <!-- Grid Alignment for Title and Lightning Icons (Fixed based on image_f1c7fe.png) -->
-            <div class="flex items-center justify-center gap-3 md:gap-5 w-full text-center">
-                <!-- Left Lightning Bolt -->
-                <span class="text-cyan-400 text-3xl md:text-4xl filter drop-shadow-[0_0_8px_rgba(34,211,238,0.8)] animate-pulse shrink-0">⚡</span>
-                
-                <!-- Main Cyber Title -->
-                <h1 class="cyber-font font-black text-3xl sm:text-4xl md:text-5xl tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 select-none">
-                    BRAIN CHALLENGE
-                </h1>
-                
-                <!-- Right Lightning Bolt -->
-                <span class="text-purple-400 text-3xl md:text-4xl filter drop-shadow-[0_0_8px_rgba(192,132,252,0.8)] animate-pulse shrink-0">⚡</span>
-            </div>
-            
-            <!-- Focused Subtitle for students -->
-            <p class="text-cyan-400/90 font-bold text-base sm:text-lg md:text-xl tracking-wider mt-2.5 neon-text-cyan">
-                초성 퀴즈 집중!
-            </p>
-        </div>
-    </header>
+<div class="hills" aria-hidden="true"></div>
+<div id="app">
+  <header class="topbar">
+    <div class="brand"><span class="e">🐰</span><span class="t">토리의 코딩 놀이터</span></div>
+    <ol class="steps" id="steps">
+      <li class="step"><span class="ic">🎨</span><span class="nm">패턴</span></li>
+      <li class="step"><span class="ic">🥕</span><span class="nm">길 안내</span></li>
+      <li class="step"><span class="ic">🐛</span><span class="nm">버그 잡기</span></li>
+    </ol>
+    <div class="topright">
+      <div class="lvchip" id="lvchip">🌱 하</div>
+      <div class="score" id="score">⭐ 0</div>
+      <button class="icon-btn" id="sound" type="button" aria-label="효과음 켜고 끄기">🔊</button>
+    </div>
+  </header>
+  <main class="stage" id="stage"></main>
+  <nav class="teacherbox" aria-label="선생님 메뉴">
+    <span class="tlabel">선생님<br>메뉴</span>
+    <div class="trow">
+      <button class="tbtn lvstart" data-lv="1" type="button" aria-label="난이도 하부터 시작">🌱 하</button>
+      <button class="tbtn lvstart" data-lv="2" type="button" aria-label="난이도 중부터 시작">🌿 중</button>
+      <button class="tbtn lvstart" data-lv="3" type="button" aria-label="난이도 상부터 시작">🌳 상</button>
+    </div>
+    <div class="trow">
+      <button class="tbtn" id="skip" type="button" aria-label="다음으로 넘어가기">⏭ 다음</button>
+      <button class="tbtn" id="restart" type="button" aria-label="처음 화면으로">↺ 처음</button>
+    </div>
+  </nav>
+</div>
+<div id="fx" aria-hidden="true"></div>
 
-    <main class="flex-grow flex items-center justify-center px-4 py-6 w-full max-w-4xl mx-auto z-10">
-        
-        <!-- STAGE 1: INTRO / LOBBY SCREEN -->
-        <div id="intro-screen" class="w-full bg-indigo-950/20 backdrop-blur-md p-6 md:p-10 rounded-3xl border-2 border-cyan-500/30 neon-border-cyan flex flex-col items-center relative overflow-hidden">
-            <!-- Scanner line background effect -->
-            <div class="absolute inset-x-0 h-0.5 bg-cyan-500/20 scanner-line left-0 w-full pointer-events-none"></div>
-            
-            <div class="text-center mb-8">
-                <span class="bg-indigo-950/80 text-cyan-400 text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border border-cyan-500/40">
-                    BATTLE LOBBY
-                </span>
-                <h2 class="text-2xl sm:text-3xl md:text-4xl font-extrabold mt-4 tracking-tight leading-snug">
-                    아이스브레이킹 초성 대전
-                </h2>
-                <!-- Removed "5학년 전용" phrase per request and adjusted referencing image_f1c0a0.png -->
-                <p class="text-slate-400 mt-2 text-sm md:text-base">
-                    하이테크 초성 해독 미션. 준비되었는가?
-                </p>
-            </div>
+<script>
+(function(){
+'use strict';
 
-            <!-- Quiz Specs Dashboard -->
-            <div class="grid grid-cols-2 gap-4 w-full max-w-md mb-8">
-                <div class="bg-indigo-950/40 p-4 rounded-2xl border border-indigo-900 text-center">
-                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">총 문제 수</p>
-                    <p class="cyber-font text-2xl font-black text-cyan-400 mt-1">10 STAGES</p>
-                </div>
-                <div class="bg-indigo-950/40 p-4 rounded-2xl border border-indigo-900 text-center">
-                    <p class="text-xs text-slate-500 uppercase font-bold tracking-wider">보너스 힌트</p>
-                    <p class="cyber-font text-2xl font-black text-rose-500 mt-1">NO HINT</p>
-                </div>
-            </div>
+/* ---------- 도구 ---------- */
+const $=(s,r=document)=>r.querySelector(s);
+const rand=n=>Math.floor(Math.random()*n);
+const pick=a=>a[rand(a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=rand(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function h(tag,attrs,...kids){
+  const e=document.createElement(tag);
+  if(attrs) for(const k in attrs){
+    const v=attrs[k];
+    if(k==='class') e.className=v;
+    else if(k.slice(0,2)==='on') e.addEventListener(k.slice(2),v);
+    else if(v!==false&&v!=null) e.setAttribute(k,v===true?'':v);
+  }
+  for(const c of kids.flat()){ if(c==null||c===false) continue; e.append(c.nodeType?c:document.createTextNode(c)); }
+  return e;
+}
 
-            <!-- Developer Badge -->
-            <div class="mb-8 flex items-center gap-2 bg-purple-950/30 px-5 py-2 rounded-xl border border-purple-500/20">
-                <span class="text-purple-400 font-bold text-xs tracking-wider">CREATOR:</span>
-                <span class="text-purple-300 font-extrabold text-sm tracking-widest">양경진</span>
-            </div>
+/* ---------- 상태 ---------- */
+const S={level:1,gi:-1,round:0,gameScore:0,total:0,lvScore:{1:0,2:0,3:0},played:{},up:false,token:0,sound:true};
+const LV={1:{n:'하',ic:'🌱'},2:{n:'중',ic:'🌿'},3:{n:'상',ic:'🌳'}};
+const GAMES=[
+  {id:'pattern',name:'패턴 이어가기',icon:'🎨',rounds:5,intro:'그림이 줄을 서 있어요. 다음에 올 그림을 눌러 주세요!'},
+  {id:'path',name:'토리 길 안내',icon:'🥕',rounds:4,intro:'화살표를 눌러 길을 만들고 출발을 누르면 토리가 당근을 찾아가요!'},
+  {id:'bug',name:'버그 잡기',icon:'🐛',rounds:4,intro:'카드 하나가 틀렸어요. 틀린 카드를 찾아서 고쳐 주세요!'}
+];
+const D={up:{dr:-1,dc:0,ic:'⬆️'},down:{dr:1,dc:0,ic:'⬇️'},left:{dr:0,dc:-1,ic:'⬅️'},right:{dr:0,dc:1,ic:'➡️'}};
+const OPP={up:'down',down:'up',left:'right',right:'left'};
+const PRAISE=['정답! 최고예요!','와! 잘했어요!','딩동댕! 멋져요!','대단해요!'];
+const stage=$('#stage');
+const newToken=()=>++S.token;
+const alive=t=>t===S.token;
+const award=t=>t===0?3:t===1?2:1;
+const inb=(n,r,c)=>r>=0&&c>=0&&r<n&&c<n;
 
-            <button onclick="startGame()" class="w-full max-w-sm py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-black font-black text-xl rounded-2xl shadow-lg transition duration-300 transform hover:-translate-y-1 hover:scale-105 tracking-widest uppercase">
-                MISSION START
-            </button>
-        </div>
+/* ---------- 소리 ---------- */
+let ac=null;
+function audio(){
+  try{
+    if(!ac){const C=window.AudioContext||window.webkitAudioContext; if(C) ac=new C();}
+    if(ac&&ac.state==='suspended') ac.resume();
+  }catch(e){}
+  return ac;
+}
+function tone(freq,dur,type,when,vol){
+  if(!S.sound) return;
+  const a=audio(); if(!a) return;
+  try{
+    const t=a.currentTime+(when||0), o=a.createOscillator(), g=a.createGain();
+    o.type=type||'sine'; o.frequency.setValueAtTime(freq,t);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol||0.16,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(a.destination); o.start(t); o.stop(t+dur+0.03);
+  }catch(e){}
+}
+const sfx={
+  tap(){tone(660,.08,'triangle',0,.14);},
+  ok(){[523,659,784,1047].forEach((f,i)=>tone(f,.16,'triangle',i*.08));},
+  no(){tone(300,.18,'sine',0,.16);tone(240,.22,'sine',.12,.16);},
+  step(){tone(420+Math.random()*90,.07,'square',0,.07);},
+  bump(){tone(160,.2,'sawtooth',0,.1);},
+  win(){[523,659,784,659,784,1047].forEach((f,i)=>tone(f,.18,'triangle',i*.1));}
+};
+function say(text){
+  try{
+    if(!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; u.rate=.9; u.pitch=1.15;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
 
-        <!-- STAGE 2: GAMEPLAY SCREEN -->
-        <div id="game-screen" class="hidden flex-col justify-between flex-grow w-full">
-            <!-- Top Status Bar -->
-            <div class="flex justify-between items-center pb-4 border-b border-indigo-950">
-                <span id="quiz-category" class="bg-indigo-950/80 text-cyan-400 text-sm md:text-base px-4 py-1.5 rounded-full border border-cyan-500/30 font-bold tracking-wider">
-                    CATEGORY: LOADING
-                </span>
-                <span id="quiz-progress" class="cyber-font text-purple-400 text-sm md:text-base font-bold tracking-widest">
-                    01 / 10
-                </span>
-            </div>
+/* ---------- 효과 ---------- */
+function burst(el){
+  const fx=$('#fx');
+  const r=el?el.getBoundingClientRect():{left:innerWidth/2,top:innerHeight/2,width:0,height:0};
+  const cx=r.left+r.width/2, cy=r.top+r.height/2, bits=['⭐','✨','🎉','💛'];
+  for(let i=0;i<14;i++){
+    const s=document.createElement('span'); s.className='bit'; s.textContent=bits[i%bits.length];
+    const a=Math.random()*Math.PI*2, d=60+Math.random()*130;
+    s.style.left=cx+'px'; s.style.top=cy+'px';
+    s.style.setProperty('--dx',(Math.cos(a)*d)+'px'); s.style.setProperty('--dy',(Math.sin(a)*d-40)+'px');
+    fx.appendChild(s); setTimeout(()=>s.remove(),1100);
+  }
+}
 
-            <!-- Glowing Digital Countdown Timer (New feature!) -->
-            <div class="w-full my-4">
-                <div class="flex justify-between items-center mb-1">
-                    <span class="text-xs text-slate-400 font-bold uppercase tracking-wider">SYSTEM TIMER</span>
-                    <span id="timer-text" class="cyber-font font-black text-xl text-cyan-400 neon-text-cyan animate-pulse">15s</span>
-                </div>
-                <div class="w-full bg-indigo-950/80 h-3 rounded-full overflow-hidden border border-indigo-900/60 p-0.5">
-                    <div id="timer-bar" class="bg-gradient-to-r from-cyan-400 to-purple-500 h-full w-full rounded-full transition-all duration-300"></div>
-                </div>
-            </div>
+/* ---------- 화면 공통 ---------- */
+function renderTop(){
+  $('#score').textContent='⭐ '+S.total;
+  $('#lvchip').textContent=LV[S.level].ic+' '+LV[S.level].n;
+  [...$('#steps').children].forEach((el,i)=>{
+    el.className='step'+(i===S.gi?' now':'')+(i<S.gi?' done':'');
+  });
+}
+function frame(i){
+  const g=GAMES[i];
+  const msg=h('span',{class:'msg'});
+  const speak=h('button',{class:'icon-btn',type:'button','aria-label':'소리로 듣기',onclick:()=>say(msg.textContent)},'🔊');
+  const bubble=h('div',{class:'bubble'},h('span',{class:'who'},'🐰'),msg,speak);
+  const dots=h('div',{class:'dots','aria-label':(S.round+1)+' / '+g.rounds},
+    Array.from({length:g.rounds},(_,k)=>h('i',{class:k<S.round?'on':k===S.round?'cur':''})));
+  const body=h('div',{class:'play'});
+  stage.replaceChildren(h('section',{class:'game'},h('div',{class:'gamehead'},bubble,dots),body));
+  stage.scrollTop=0;
+  return {
+    body,
+    setMsg(t,tone){msg.textContent=t; bubble.className='bubble'+(tone?' '+tone:'');}
+  };
+}
+async function roundEnd(tok,f,earned){
+  const pts=earned*S.level;
+  S.gameScore+=pts; S.total+=pts; S.lvScore[S.level]+=pts; renderTop();
+  f.body.append(h('div',{class:'earned'},'⭐ +'+pts));
+  await sleep(1600); if(!alive(tok)) return;
+  S.round++; nextRound();
+}
+function nextRound(){
+  const g=GAMES[S.gi];
+  if(S.round>=g.rounds){ showGameDone(S.gi); return; }
+  ({pattern:playPattern,path:playPath,bug:playBug})[g.id]();
+}
 
-            <!-- Problem/Answer Area -->
-            <div class="flex flex-col items-center justify-center flex-grow my-4 text-center relative min-h-[300px]">
-                <!-- Question Box (Extra Large Consonants) -->
-                <div id="question-box" class="block w-full">
-                    <p class="text-slate-500 text-xs md:text-sm uppercase tracking-widest mb-4">DECRYPT THE CONSONANTS</p>
-                    <h2 id="consonant-text" class="text-7xl sm:text-8xl md:text-9xl tracking-widest text-cyan-400 font-black filter drop-shadow-[0_0_20px_rgba(34,211,238,0.7)] select-none">
-                        - - -
-                    </h2>
-                </div>
+/* ---------- 시작 · 끝 화면 ---------- */
+function levelRoad(){
+  return h('div',{class:'levels',role:'group','aria-label':'난이도 단계'},
+    [1,2,3].map(n=>h('div',{class:'lvl'+(S.level===n?' on':'')},
+      h('span',{},LV[n].ic),h('small',{},'난이도 '+LV[n].n))));
+}
+function resetRun(lv){
+  newToken(); S.level=lv; S.gi=-1; S.round=0; S.gameScore=0; S.total=0;
+  S.lvScore={1:0,2:0,3:0}; S.played={}; S.up=false; renderTop();
+}
+function startAtLevel(lv){ resetRun(lv); showGameIntro(0); }
+function showIntro(){
+  resetRun(1);
+  stage.replaceChildren(h('section',{class:'panel'},
+    h('div',{class:'big-ic'},'🐰'),
+    h('h1',{},'토리의 코딩 놀이터'),
+    h('p',{class:'lead'},'게임 3개를 모두 하면 난이도가 올라가요. 올라갈수록 점수도 커져요!'),
+    h('div',{class:'trio'},GAMES.map(g=>h('div',{class:'trio-i'},h('span',{},g.icon),h('small',{},g.name)))),
+    levelRoad(),
+    h('button',{class:'btn go',type:'button',onclick:()=>{audio();sfx.tap();showGameIntro(0);}},'시작!')
+  ));
+}
+function showGameIntro(i){
+  newToken(); S.gi=i; S.round=0; S.up=false; renderTop();
+  const g=GAMES[i];
+  stage.replaceChildren(h('section',{class:'panel'},
+    h('div',{class:'big-ic'},g.icon),
+    h('h2',{},g.name),
+    h('div',{class:'lvtag'},LV[S.level].ic+' 난이도 '+LV[S.level].n+' · 점수 ×'+S.level),
+    h('p',{class:'lead'},g.intro),
+    h('div',{class:'actions'},
+      h('button',{class:'btn small',type:'button','aria-label':'소리로 듣기',onclick:()=>{audio();say(g.intro);}},'🔊'),
+      h('button',{class:'btn go',type:'button',onclick:()=>{audio();sfx.tap();playGame(i);}},'시작! ▶'))
+  ));
+}
+function playGame(i){
+  S.gi=i; S.round=0; S.gameScore=0; S.played[S.level]=true; S.up=false; renderTop(); nextRound();
+}
+function showGameDone(i){
+  newToken(); renderTop();
+  const g=GAMES[i], last=i===GAMES.length-1, max=g.rounds*3*S.level, lastLevel=S.level>=3;
+  stage.replaceChildren(h('section',{class:'panel'},
+    h('div',{class:'big-ic'},'🎉'),
+    h('h2',{},g.name+' 끝!'),
+    h('div',{class:'starrow'},'⭐ '+S.gameScore+' / '+max),
+    h('p',{class:'lead'},'정말 잘했어요!'),
+    h('button',{class:'btn go',type:'button',onclick:()=>{
+      sfx.tap();
+      if(!last) showGameIntro(i+1);
+      else if(lastLevel) showFinal();
+      else showLevelUp();
+    }},!last?'다음 게임 ▶':lastLevel?'결과 보기':'난이도 올리기 ▶')
+  ));
+  sfx.win(); burst();
+}
+function showLevelUp(){
+  newToken(); S.gi=3; S.up=true; renderTop();
+  const next=S.level+1, lv=LV[next];
+  stage.replaceChildren(h('section',{class:'panel'},
+    h('div',{class:'big-ic'},lv.ic),
+    h('h2',{},'난이도 '+lv.n+'으로 올라가요!'),
+    h('p',{class:'lead'},'문제가 조금 더 어려워지고, 점수는 '+next+'배로 늘어나요!'),
+    h('button',{class:'btn go',type:'button',onclick:()=>{sfx.tap(); S.level=next; showGameIntro(0);}},'시작! ▶')
+  ));
+  sfx.win(); burst(); setTimeout(()=>burst(),450);
+}
+function showFinal(){
+  newToken(); S.gi=3; S.up=false; renderTop();
+  const animals=['🐰','🐻','🦊','🐼','🐸','🐥'];
+  stage.replaceChildren(h('section',{class:'panel'},
+    h('h2',{},'모두 해냈어요!'),
+    h('div',{class:'parade'},animals.map((a,k)=>h('span',{style:'--i:'+k},a))),
+    h('div',{class:'starrow'},'⭐ '+S.total),
+    h('div',{class:'results'},[1,2,3].filter(n=>S.played[n]).map(n=>h('div',{class:'res'},
+      h('span',{class:'l'},h('span',{class:'ic'},LV[n].ic),'난이도 '+LV[n].n),
+      h('span',{},'⭐ '+S.lvScore[n]+' / '+(GAMES.reduce((a,g)=>a+g.rounds*3,0)*n))))),
+    h('button',{class:'btn',type:'button',onclick:()=>{sfx.tap();showIntro();}},'처음부터 다시')
+  ));
+  sfx.win(); burst(); setTimeout(()=>burst(),450); setTimeout(()=>burst(),900);
+}
 
-                <!-- Answer Reveal Box (Extra Large Answer & Emoji) -->
-                <div id="answer-box" class="hidden flex-col items-center w-full">
-                    <div id="answer-emoji" class="text-8xl md:text-9xl mb-4 filter drop-shadow-[0_0_15px_rgba(255,255,255,0.3)] select-none">❓</div>
-                    <h2 id="answer-text" class="text-6xl sm:text-7xl md:text-8xl text-rose-400 font-black neon-text-rose tracking-wider leading-tight">
-                        정답단어
-                    </h2>
-                    <p id="timeout-banner" class="text-red-500 font-bold text-lg mt-4 uppercase tracking-widest animate-bounce hidden">⚠️ TIME OVER ⚠️</p>
-                </div>
-            </div>
+/* ---------- 게임 1: 패턴 이어가기 ---------- */
+const POOL=[
+  ['🍎','🍌','🍇','🍓','🍊','🍉'],
+  ['🐶','🐱','🐸','🐼','🦊','🐥'],
+  ['🔴','🟦','🟡','🟢','🟣','🟧']
+];
+const PATS={1:['AB'],2:['AAB','ABB','ABC'],3:['ABC','AABB','ABCB']};
+function makePattern(){
+  const unit=pick(PATS[S.level]);
+  const kinds=[...new Set(unit)];
+  const pool=shuffle(pick(POOL));
+  const map={}; kinds.forEach((k,i)=>{map[k]=pool[i];});
+  const N=unit.length*2+1, seq=[];
+  for(let i=0;i<N;i++) seq.push(map[unit[i%unit.length]]);
+  const answer=seq.pop();
+  const inPat=kinds.map(k=>map[k]);
+  const pref=inPat.filter(e=>e!==answer);
+  const rest=shuffle(pool.filter(e=>!inPat.includes(e)));
+  const options=shuffle([answer,...pref,...rest].slice(0,3));
+  return {seq,answer,options};
+}
+function playPattern(){
+  const tok=newToken(), f=frame(0), P=makePattern();
+  let tries=0, done=false;
+  f.setMsg('다음에 올 그림은 뭘까요?');
+  const slot=h('div',{class:'item q'},'❓');
+  const seq=h('div',{class:'seq'},P.seq.map(e=>h('div',{class:'item'},e)),slot);
+  const opts=h('div',{class:'options'},P.options.map(e=>{
+    const b=h('button',{class:'opt',type:'button'},e);
+    b.addEventListener('click',()=>{
+      if(done||b.disabled) return; audio();
+      if(e===P.answer){
+        done=true; b.classList.add('right');
+        slot.textContent=e; slot.classList.remove('q'); slot.classList.add('pop');
+        sfx.ok(); burst(slot); f.setMsg(pick(PRAISE),'ok');
+        roundEnd(tok,f,award(tries));
+      }else{
+        tries++; b.disabled=true; b.classList.add('wrong'); sfx.no();
+        f.setMsg('괜찮아요! 다시 해볼까요?','no');
+      }
+    });
+    return b;
+  }));
+  f.body.append(seq,opts);
+}
 
-            <!-- Cyber Hover Drones (Drones patrol during active question) -->
-            <div id="drones-dock" class="w-full relative h-20 overflow-hidden mb-6 bg-indigo-950/10 border border-indigo-900/40 rounded-2xl">
-                <!-- Drone 1 (Cyan Wing) -->
-                <div class="drone-left absolute left-10 top-2 flex flex-col items-center">
-                    <div class="bg-cyan-500 text-black text-[10px] font-black px-2 py-0.5 rounded-md mb-1 shadow-md">PATROL-01</div>
-                    <svg class="w-10 h-10 text-cyan-400 fill-current" viewBox="0 0 24 24">
-                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 14h-2v-2h2v2zm0-4h-2V7h2v5z"/>
-                    </svg>
-                    <!-- Jet thrust light -->
-                    <div class="w-1.5 h-3 bg-cyan-400 rounded-full animate-bounce mt-1"></div>
-                </div>
-                
-                <!-- Drone 2 (Purple Wing) -->
-                <div class="drone-right absolute right-14 top-4 flex flex-col items-center">
-                    <div class="bg-purple-600 text-white text-[10px] font-black px-2 py-0.5 rounded-md mb-1 shadow-md">DEFENSE-02</div>
-                    <svg class="w-10 h-10 text-purple-400 fill-current" viewBox="0 0 24 24">
-                        <path d="M12 2L2 22h20L12 2zm0 3.99L19.53 19H4.47L12 5.99zM13 16h-2v2h2v-2zm0-6h-2v4h2v-4z"/>
-                    </svg>
-                    <!-- Jet thrust light -->
-                    <div class="w-1.5 h-3 bg-purple-500 rounded-full animate-bounce mt-1"></div>
-                </div>
-            </div>
+/* ---------- 보드 (게임 2, 3 공통) ---------- */
+function makeBoard(map,opts){
+  const n=map.n, route=opts&&opts.route;
+  const el=h('div',{class:'board',style:'--n:'+n});
+  for(let r=0;r<n;r++) for(let c=0;c<n;c++){
+    const key=r+','+c, cell=h('div',{class:'cell'+((r+c)%2?' alt':'')});
+    if(r===map.start[0]&&c===map.start[1]) cell.classList.add('start');
+    if(map.obs&&map.obs.has(key)) cell.textContent='🪨';
+    else if(r===map.goal[0]&&c===map.goal[1]){ cell.textContent='🥕'; cell.classList.add('goal'); }
+    else if(route&&route.has(key)) cell.append(h('span',{class:'rt'},route.get(key)));
+    el.append(cell);
+  }
+  const rb=h('div',{class:'robot'},h('span',{},'🐰'));
+  el.append(rb);
+  const api={
+    el,rb,
+    set(p){rb.style.setProperty('--r',p[0]); rb.style.setProperty('--c',p[1]);},
+    hop(){rb.classList.remove('hop'); void rb.offsetWidth; rb.classList.add('hop');},
+    bump(){rb.classList.remove('bump'); void rb.offsetWidth; rb.classList.add('bump');}
+  };
+  api.set(map.start);
+  return api;
+}
 
-            <!-- Controls Interface -->
-            <div class="grid grid-cols-2 gap-4">
-                <!-- Submit Action (Reveals Answer) -->
-                <button id="btn-reveal" onclick="revealAnswer()" class="col-span-2 py-4 bg-cyan-500 hover:bg-cyan-400 text-black font-black text-xl rounded-2xl shadow-lg transition transform hover:-translate-y-1 tracking-widest flex justify-center items-center gap-2">
-                    <span>🔓</span> DECRYPT (정답 확인)
-                </button>
-                
-                <!-- Next Mission -->
-                <button id="btn-next" onclick="nextStage()" class="hidden col-span-2 py-4 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xl rounded-2xl shadow-lg transition transform hover:-translate-y-1 tracking-widest flex justify-center items-center gap-2">
-                    <span>NEXT MISSION ▶</span>
-                </button>
-            </div>
-        </div>
+/* ---------- 게임 2: 토리 길 안내 ---------- */
+function bfs(n,s,g,obs){
+  const q=[[s[0],s[1],0]], seen=new Set([s[0]+','+s[1]]);
+  while(q.length){
+    const [r,c,d]=q.shift();
+    if(r===g[0]&&c===g[1]) return d;
+    for(const k in D){
+      const nr=r+D[k].dr, nc=c+D[k].dc, key=nr+','+nc;
+      if(!inb(n,nr,nc)||obs.has(key)||seen.has(key)) continue;
+      seen.add(key); q.push([nr,nc,d+1]);
+    }
+  }
+  return -1;
+}
+function makeMap(){
+  const cfg={1:{n:4,obs:0,min:3,max:4},2:{n:5,obs:2,min:4,max:6},3:{n:5,obs:4,min:5,max:7}}[S.level];
+  for(let t=0;t<400;t++){
+    const n=cfg.n, start=[rand(n),rand(n)], goal=[rand(n),rand(n)];
+    const sk=start.join(','), gk=goal.join(',');
+    if(sk===gk) continue;
+    const obs=new Set(); let guard=0;
+    while(obs.size<cfg.obs&&guard++<80){
+      const key=rand(n)+','+rand(n);
+      if(key!==sk&&key!==gk) obs.add(key);
+    }
+    const len=bfs(n,start,goal,obs);
+    if(len>=cfg.min&&len<=cfg.max) return {n,start,goal,obs,len};
+  }
+  return {n:4,start:[3,0],goal:[0,2],obs:new Set(),len:5};
+}
+function playPath(){
+  const tok=newToken(), f=frame(1), M=makeMap(), maxLen=Math.min(10,M.len+3);
+  const q=[]; let tries=0, running=false, done=false;
+  const B=makeBoard(M);
+  const slots=Array.from({length:maxLen},()=>h('div',{class:'slot'}));
+  function draw(){
+    slots.forEach((s,k)=>{s.className='slot'+(q[k]?' full':''); s.textContent=q[k]?D[q[k]].ic:'';});
+  }
+  function add(d){
+    if(running||done) return; audio();
+    if(q.length>=maxLen){sfx.no(); return;}
+    q.push(d); sfx.tap(); draw();
+  }
+  async function run(){
+    if(running||done) return; audio();
+    if(!q.length){ f.setMsg('화살표를 먼저 눌러 봐요!','no'); sfx.no(); return; }
+    running=true; draw(); B.set(M.start);
+    f.setMsg('토리 출발!');
+    await sleep(350); if(!alive(tok)) return;
+    let pos=M.start.slice(), failed=-1, success=false;
+    for(let k=0;k<q.length;k++){
+      slots[k].classList.add('cur');
+      const d=D[q[k]], np=[pos[0]+d.dr,pos[1]+d.dc];
+      if(!inb(M.n,np[0],np[1])||M.obs.has(np[0]+','+np[1])){ failed=k; break; }
+      pos=np; B.set(pos); B.hop(); sfx.step();
+      await sleep(540); if(!alive(tok)) return;
+      slots[k].classList.remove('cur'); slots[k].classList.add('seen');
+      if(pos[0]===M.goal[0]&&pos[1]===M.goal[1]){ success=true; break; }
+    }
+    if(success){
+      done=true; running=false; sfx.ok(); burst(B.rb);
+      f.setMsg('당근 도착! '+pick(PRAISE),'ok');
+      roundEnd(tok,f,award(tries)); return;
+    }
+    tries++;
+    if(failed>=0){
+      slots[failed].classList.remove('cur'); slots[failed].classList.add('bad');
+      B.bump(); sfx.bump(); f.setMsg('쿵! 길이 막혔어요. 카드를 바꿔 볼까요?','no');
+    }else{
+      sfx.no(); f.setMsg('아직 당근에 못 갔어요. 카드를 더 눌러 볼까요?','no');
+    }
+    await sleep(1000); if(!alive(tok)) return;
+    B.set(M.start);
+    slots.forEach(s=>s.classList.remove('cur','seen'));
+    running=false;
+  }
+  const pad=h('div',{class:'dpad'},['up','left','down','right'].map(d=>
+    h('button',{class:'arrow '+d,type:'button','aria-label':d,onclick:()=>add(d)},D[d].ic)));
+  const clearBtn=h('button',{class:'btn small',type:'button','aria-label':'모두 지우기',onclick:()=>{if(running||done)return; q.length=0; sfx.tap(); draw();}},'🗑️');
+  const undoBtn=h('button',{class:'btn small',type:'button','aria-label':'한 칸 지우기',onclick:()=>{if(running||done)return; q.pop(); sfx.tap(); draw();}},'↩️');
+  const goBtn=h('button',{class:'btn go',type:'button',onclick:run},'▶ 출발!');
+  f.setMsg('화살표를 눌러 토리를 당근에게 보내요!');
+  f.body.classList.add('path');
+  f.body.append(B.el,h('div',{class:'ctrl'},h('div',{class:'slots'},slots),pad,h('div',{class:'actions'},clearBtn,undoBtn,goBtn)));
+  draw();
+}
 
-        <!-- STAGE 3: MISSION COMPLETE / RESULT SCREEN -->
-        <div id="result-screen" class="hidden w-full bg-indigo-950/20 backdrop-blur-md p-6 md:p-10 rounded-3xl border-2 border-purple-500/40 neon-border-cyan flex flex-col items-center relative overflow-hidden text-center">
-            <div class="absolute inset-x-0 h-0.5 bg-purple-500/20 scanner-line left-0 w-full pointer-events-none"></div>
-            
-            <div class="mb-6">
-                <span class="bg-purple-950/80 text-purple-300 text-xs uppercase tracking-widest px-4 py-1.5 rounded-full border border-purple-500/40">
-                    MISSION COMPLETE
-                </span>
-                <h2 class="text-4xl sm:text-5xl font-black text-cyan-400 mt-6 tracking-widest filter drop-shadow-[0_0_10px_rgba(0,240,255,0.6)]">
-                    ALL CLEARED
-                </h2>
-                <p class="text-slate-300 mt-3 text-base">
-                    모든 스테이지 해독 완료! 미션 성공!
-                </p>
-            </div>
+/* ---------- 게임 3: 버그 잡기 ---------- */
+function simulate(n,start,prog){
+  let p=start.slice(); const out=[];
+  for(const k of prog){
+    p=[p[0]+D[k].dr,p[1]+D[k].dc];
+    if(!inb(n,p[0],p[1])) return null;
+    out.push(p);
+  }
+  return out;
+}
+function makeBug(){
+  const cfg={1:{n:4,steps:3},2:{n:4,steps:4},3:{n:5,steps:5}}[S.level];
+  for(let t=0;t<400;t++){
+    const n=cfg.n, start=[rand(n),rand(n)];
+    let p=start.slice(), ok=true; const cmds=[];
+    for(let i=0;i<cfg.steps;i++){
+      const last=cmds[cmds.length-1];
+      const opts=Object.keys(D).filter(k=>k!==OPP[last]&&inb(n,p[0]+D[k].dr,p[1]+D[k].dc));
+      if(!opts.length){ok=false;break;}
+      const k=pick(opts); cmds.push(k); p=[p[0]+D[k].dr,p[1]+D[k].dc];
+    }
+    if(!ok||(p[0]===start[0]&&p[1]===start[1])) continue;
+    const idx=rand(cfg.steps);
+    for(const k of shuffle(Object.keys(D).filter(x=>x!==cmds[idx]))){
+      const wrong=cmds.slice(); wrong[idx]=k;
+      if(simulate(n,start,wrong)) return {n,start,goal:p,cmds,wrong,idx};
+    }
+  }
+  return {n:4,start:[3,0],goal:[1,1],cmds:['up','up','right'],wrong:['up','right','right'],idx:1};
+}
+function playBug(){
+  const tok=newToken(), f=frame(2), M=makeBug();
+  const route=new Map();
+  [M.start].concat(simulate(M.n,M.start,M.cmds).slice(0,-1)).forEach((p,k)=>{
+    const key=p.join(','); if(!route.has(key)) route.set(key,D[M.cmds[k]].ic);
+  });
+  const B=makeBoard({n:M.n,start:M.start,goal:M.goal,obs:new Set()},{route});
+  let tries=0, busy=true, found=false, done=false;
+  const cardEls=M.wrong.map((d,k)=>h('button',{class:'card',type:'button',onclick:()=>tapCard(k)},h('small',{},k+1),h('span',{},D[d].ic)));
+  const picker=h('div',{class:'picker'},['up','left','down','right'].map(d=>
+    h('button',{class:'arrow',type:'button','aria-label':d,onclick:ev=>pickFix(d,ev.currentTarget)},D[d].ic)));
+  picker.hidden=true;
 
-            <div class="my-6">
-                <div class="text-8xl animate-bounce">🏆</div>
-            </div>
+  async function playRun(prog){
+    busy=true; B.set(M.start);
+    cardEls.forEach(c=>c.classList.remove('cur'));
+    await sleep(500); if(!alive(tok)) return false;
+    let pos=M.start.slice();
+    for(let k=0;k<prog.length;k++){
+      cardEls[k].classList.add('cur');
+      const d=D[prog[k]]; pos=[pos[0]+d.dr,pos[1]+d.dc];
+      B.set(pos); B.hop(); sfx.step();
+      await sleep(640); if(!alive(tok)) return false;
+      cardEls[k].classList.remove('cur');
+    }
+    return pos;
+  }
+  async function fix(){
+    busy=true; picker.hidden=true;
+    const k=M.idx;
+    cardEls[k].classList.remove('bugged'); cardEls[k].classList.add('fixed');
+    cardEls[k].querySelector('span').textContent=D[M.cmds[k]].ic;
+    burst(cardEls[k]); sfx.ok(); f.setMsg('고쳤어요! 토리가 다시 가 볼게요!','ok');
+    await sleep(900); if(!alive(tok)) return;
+    const end=await playRun(M.cmds); if(end===false) return;
+    done=true; burst(B.rb); sfx.win();
+    f.setMsg('당근 도착! 버그를 잡았어요!','ok');
+    roundEnd(tok,f,award(tries));
+  }
+  function tapCard(k){
+    if(busy||done||found) return; audio();
+    if(k===M.idx){
+      found=true; sfx.ok();
+      cardEls[k].classList.add('bugged'); cardEls[k].querySelector('span').textContent='🐛';
+      if(S.level===1){ f.setMsg('찾았다! 버그를 고칠게요!','ok'); busy=true; sleep(800).then(()=>{ if(alive(tok)) fix(); }); }
+      else{ f.setMsg('찾았다! 어떤 화살표로 바꿀까요?','ok'); picker.hidden=false; }
+    }else{
+      tries++; cardEls[k].classList.add('fine'); cardEls[k].disabled=true; sfx.no();
+      f.setMsg('그 카드는 괜찮아요. 다른 카드를 찾아봐요!','no');
+    }
+  }
+  function pickFix(d,btn){
+    if(busy||done||!found) return; audio();
+    if(d===M.cmds[M.idx]){ fix(); }
+    else{
+      tries++; sfx.no(); f.setMsg('다시 해볼까요? 화살표 길을 보세요!','no');
+      btn.classList.remove('shake'); void btn.offsetWidth; btn.classList.add('shake');
+    }
+  }
+  const replay=h('button',{class:'btn small',type:'button',onclick:async()=>{
+    if(busy||done||found) return; busy=true; f.setMsg('다시 한번 볼까요?');
+    const e=await playRun(M.wrong); if(e===false) return;
+    f.setMsg('틀린 카드를 눌러 주세요!','no'); busy=false;
+  }},'👀 다시 보기');
 
-            <button onclick="restartGame()" class="w-full max-w-sm py-4 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-400 hover:to-purple-500 text-black font-black text-xl rounded-2xl shadow-lg transition duration-300 transform hover:-translate-y-1 tracking-widest">
-                SYSTEM REBOOT (다시 시작)
-            </button>
-        </div>
+  f.body.classList.add('bug');
+  f.body.append(B.el,h('div',{class:'ctrl'},h('div',{class:'cards'},cardEls),picker,replay));
+  (async()=>{
+    f.setMsg('토리가 카드대로 가 볼게요!');
+    const end=await playRun(M.wrong); if(end===false) return;
+    sfx.no(); f.setMsg('앗! 당근에 못 갔어요. 틀린 카드를 눌러 주세요!','no'); busy=false;
+  })();
+}
 
-    </main>
+/* ---------- 상단 버튼 · 선생님 메뉴 ---------- */
+$('#sound').addEventListener('click',()=>{
+  S.sound=!S.sound; $('#sound').textContent=S.sound?'🔊':'🔇'; audio(); if(S.sound) sfx.tap();
+});
+/* 선생님 메뉴: 누르면 바로 실행 */
+$('#restart').addEventListener('click',()=>{ audio(); showIntro(); });
+document.querySelectorAll('.lvstart').forEach(b=>b.addEventListener('click',()=>{ audio(); startAtLevel(+b.dataset.lv); }));
+$('#skip').addEventListener('click',()=>{
+  audio();
+  if(S.gi<0) showGameIntro(0);
+  else if(S.gi<GAMES.length-1) showGameIntro(S.gi+1);
+  else if(S.gi===GAMES.length-1){ if(S.level>=3) showFinal(); else showLevelUp(); }
+  else if(S.up){ S.level++; showGameIntro(0); }
+});
 
-    <!-- Footer credits with Developer information -->
-    <footer class="w-full pb-6 px-4 text-center z-10 text-xs text-slate-500 tracking-wider">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3 border-t border-indigo-950/40 pt-4">
-            <p class="cyber-font">STATUS: STABLE_CYBER_ENVIRONMENT_V1.2</p>
-        </div>
-    </footer>
+/* ---------- 스크롤 없이 한 화면에 맞추기 ----------
+   화면 내용이 무대보다 크면 자동으로 알맞게 줄여서(축소) 항상 한 화면에 다 보이게 해요. */
+function fit(){
+  const el=stage.firstElementChild; if(!el) return;
+  el.style.transform=''; el.style.marginTop=''; el.style.flex=''; el.style.height='';
+  const cs=getComputedStyle(stage);
+  const sw=stage.clientWidth, sh=stage.clientHeight-(parseFloat(cs.paddingBottom)||0);
+  if(!sw||!sh) return;
+  el.style.flex='none'; el.style.height='auto';
+  const w=Math.max(el.offsetWidth,el.scrollWidth), hh=Math.max(el.offsetHeight,el.scrollHeight);
+  const k=Math.min(1,sw/w,sh/hh);
+  if(k>=0.999){ el.style.flex=''; el.style.height=''; return; }
+  el.style.transformOrigin='top center';
+  el.style.transform='scale('+k+')';
+  el.style.marginTop=Math.max(0,(sh-hh*k)/2)+'px';
+}
+let fitBusy=false;
+const fitSoon=()=>{ if(fitBusy) return; fitBusy=true; try{ fit(); }finally{ fitBusy=false; } };
+new MutationObserver(fitSoon).observe(stage,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['hidden']});
+window.addEventListener('resize',fitSoon);
+window.addEventListener('orientationchange',()=>setTimeout(fitSoon,250));
+window.addEventListener('load',fitSoon);
+if(window.ResizeObserver) new ResizeObserver(fitSoon).observe(stage);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitSoon);
 
-    <script>
-        // Quiz Database customized with requested terms (10 total)
-        const quizDatabase = [
-            { consonant: 'ㄷㅎㅁㄱ', answer: '대한민국', category: '나라 이름', emoji: '🇰🇷' },
-            { consonant: 'ㅁㄱ', answer: '미국', category: '나라 이름', emoji: '🇺🇸' },
-            { consonant: 'ㅇㅂ', answer: '일본', category: '나라 이름', emoji: '🇯🇵' },
-            { consonant: 'ㅍㄹㅅ', answer: '프랑스', category: '나라 이름', emoji: '🇫🇷' },
-            { consonant: 'ㅅㄱ', answer: '사과', category: '과일 이름', emoji: '🍎' },
-            { consonant: 'ㅂㄴㄴ', answer: '바나나', category: '과일 이름', emoji: '🍌' },
-            { consonant: 'ㅅㅂ', answer: '수박', category: '과일 이름', emoji: '🍉' },
-            { consonant: 'ㅇㄱㅈㄴ', answer: '인공지능', category: '테크 & 코딩', emoji: '🤖' },
-            { consonant: 'ㅋㄷ', answer: '코딩', category: '테크 & 코딩', emoji: '💻' },
-            { consonant: 'ㅇㅌㄹ', answer: '엔트리', category: '테크 & 코딩', emoji: '👾' }
-        ];
+showIntro();
+})();
+</script>
 
-        let activeQuizList = []; // Shuffled list
-        let currentStageIndex = 0;
-        let isRevealed = false;
-        let audioContext = null;
-
-        // Timer State Variables
-        let timerInterval = null;
-        const INITIAL_TIME = 15; // 15 seconds limit
-        let timeLeft = INITIAL_TIME;
-
-        // Fisher-Yates Shuffle algorithm for true randomness
-        function shuffleQuiz(array) {
-            let shuffled = [...array];
-            for (let i = shuffled.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-            }
-            return shuffled;
-        }
-
-        // Initialize Audio Context on demand
-        function initAudio() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
-        }
-
-        // 1. Tick Sound Effect ("띠" - 8bit styled crisp tick)
-        function playTickSound(isUrgent) {
-            initAudio();
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-            const osc = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-
-            osc.type = 'sine';
-            // Urgent gets a higher pitch beep to alarm students
-            osc.frequency.setValueAtTime(isUrgent ? 1300 : 880, now);
-
-            gain.gain.setValueAtTime(0.06, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-
-            osc.connect(gain);
-            gain.connect(audioContext.destination);
-
-            osc.start(now);
-            osc.stop(now + 0.1);
-        }
-
-        // 2. Victory Sound Effect ("예!!!" - Sci-Fi retro chord sweep)
-        function playVictorySound() {
-            initAudio();
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-            
-            // Retro arcade heroic sweep notes
-            const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
-            
-            notes.forEach((freq, index) => {
-                const osc = audioContext.createOscillator();
-                const gain = audioContext.createGain();
-                
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(freq, now + index * 0.06);
-                
-                gain.gain.setValueAtTime(0.12, now + index * 0.06);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + index * 0.06 + 0.4);
-                
-                osc.connect(gain);
-                gain.connect(audioContext.destination);
-                
-                osc.start(now + index * 0.06);
-                osc.stop(now + index * 0.06 + 0.5);
-            });
-
-            // Energetic laser synth sweep for modern exclamation
-            const laserOsc = audioContext.createOscillator();
-            const laserGain = audioContext.createGain();
-            
-            laserOsc.type = 'sawtooth';
-            laserOsc.frequency.setValueAtTime(150, now);
-            laserOsc.frequency.exponentialRampToValueAtTime(1300, now + 0.3);
-            
-            laserGain.gain.setValueAtTime(0.08, now);
-            laserGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-            
-            laserOsc.connect(laserGain);
-            laserGain.connect(audioContext.destination);
-            
-            laserOsc.start(now);
-            laserOsc.stop(now + 0.35);
-        }
-
-        // 3. Buzz Sound Effect (For Timeout State)
-        function playBuzzerSound() {
-            initAudio();
-            if (!audioContext) return;
-
-            const now = audioContext.currentTime;
-            const osc1 = audioContext.createOscillator();
-            const osc2 = audioContext.createOscillator();
-            const gain = audioContext.createGain();
-
-            osc1.type = 'sawtooth';
-            osc1.frequency.setValueAtTime(110, now);
-            osc2.type = 'sawtooth';
-            osc2.frequency.setValueAtTime(112, now); // Detuned fat synth bass feel
-
-            gain.gain.setValueAtTime(0.15, now);
-            gain.gain.linearRampToValueAtTime(0.001, now + 0.5);
-
-            osc1.connect(gain);
-            osc2.connect(gain);
-            gain.connect(audioContext.destination);
-
-            osc1.start(now);
-            osc2.start(now);
-            osc1.stop(now + 0.55);
-            osc2.stop(now + 0.55);
-        }
-
-        // Victory celebration confetti trigger
-        function triggerConfetti() {
-            const count = 200;
-            const defaults = {
-                origin: { y: 0.8 },
-                zIndex: 1000
-            };
-
-            function fire(particleRatio, opts) {
-                confetti({
-                    ...defaults,
-                    ...opts,
-                    particleCount: Math.floor(count * particleRatio)
-                });
-            }
-
-            fire(0.25, {
-                spread: 26,
-                startVelocity: 55,
-            });
-            fire(0.2, {
-                spread: 60,
-            });
-            fire(0.35, {
-                spread: 100,
-                decay: 0.91,
-                scalar: 0.8
-            });
-            fire(0.1, {
-                spread: 120,
-                startVelocity: 25,
-                decay: 0.92,
-                scalar: 1.2
-            });
-            fire(0.1, {
-                spread: 120,
-                startVelocity: 45,
-            });
-        }
-
-        // Starts the live interactive ticking timer
-        function startTimer() {
-            clearInterval(timerInterval);
-            timeLeft = INITIAL_TIME;
-            
-            // Reset UI Style
-            const timerBar = document.getElementById('timer-bar');
-            const timerText = document.getElementById('timer-text');
-            
-            timerBar.style.width = '100%';
-            timerBar.className = "bg-gradient-to-r from-cyan-400 to-purple-500 h-full w-full rounded-full transition-all duration-300";
-            timerText.textContent = `${timeLeft}s`;
-            timerText.className = "cyber-font font-black text-xl text-cyan-400 neon-text-cyan animate-pulse";
-
-            timerInterval = setInterval(() => {
-                timeLeft--;
-                timerText.textContent = `${timeLeft}s`;
-                
-                // Shrink progress bar
-                const percentage = (timeLeft / INITIAL_TIME) * 100;
-                timerBar.style.width = `${percentage}%`;
-
-                if (timeLeft <= 5 && timeLeft > 0) {
-                    // Fast warning state (Under 5s)
-                    timerText.className = "cyber-font font-black text-xl text-rose-500 neon-text-rose animate-ping";
-                    timerBar.className = "bg-rose-500 h-full w-full rounded-full transition-all duration-300";
-                    playTickSound(true); // High pitch tick
-                } else if (timeLeft > 5) {
-                    playTickSound(false); // Normal tick "tti"
-                }
-
-                if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
-                    handleTimeOut();
-                }
-            }, 1000);
-        }
-
-        // Handles scenario when countdown hits 0 seconds
-        function handleTimeOut() {
-            playBuzzerSound();
-            revealAnswer(true); // Automatically trigger reveal with true signifying timeout
-        }
-
-        // Start the main game loop
-        function startGame() {
-            initAudio();
-            document.getElementById('intro-screen').classList.add('hidden');
-            document.getElementById('game-screen').classList.remove('hidden');
-            document.getElementById('game-screen').classList.add('flex');
-            
-            // Randomly shuffle quiz list so it is unique every time
-            activeQuizList = shuffleQuiz(quizDatabase);
-            currentStageIndex = 0;
-            loadStage(currentStageIndex);
-        }
-
-        // Load specific stage data
-        function loadStage(index) {
-            isRevealed = false;
-            const data = activeQuizList[index];
-            
-            // Reset Timeout Banner
-            document.getElementById('timeout-banner').classList.add('hidden');
-
-            // Set text contents
-            document.getElementById('quiz-category').textContent = `CATEGORY: ${data.category}`;
-            document.getElementById('quiz-progress').textContent = `${String(index + 1).padStart(2, '0')} / ${String(activeQuizList.length).padStart(2, '0')}`;
-            document.getElementById('consonant-text').textContent = data.consonant;
-            document.getElementById('answer-text').textContent = data.answer;
-            document.getElementById('answer-emoji').textContent = data.emoji;
-
-            // Reset UI Visibility
-            document.getElementById('question-box').style.display = 'block';
-            document.getElementById('answer-box').classList.add('hidden');
-            document.getElementById('answer-box').classList.remove('flex');
-            document.getElementById('drones-dock').style.display = 'block'; // Show hover drones
-            
-            document.getElementById('btn-reveal').classList.remove('hidden');
-            document.getElementById('btn-next').classList.add('hidden');
-
-            // Start countdown timer for the new slide
-            startTimer();
-        }
-
-        // Reveal correct answer
-        function revealAnswer(isTimeOver = false) {
-            if (isRevealed) return;
-            isRevealed = true;
-
-            // Stop ticking timer immediately
-            clearInterval(timerInterval);
-
-            // Display Transition
-            document.getElementById('question-box').style.display = 'none';
-            document.getElementById('answer-box').classList.remove('hidden');
-            document.getElementById('answer-box').classList.add('flex');
-            document.getElementById('drones-dock').style.display = 'none'; // Hide drones to prioritize answer view
-
-            if (isTimeOver) {
-                document.getElementById('timeout-banner').classList.remove('hidden');
-            } else {
-                // If clicked manually prior to timeout: Celebrate with Synth and Confetti!
-                playVictorySound();
-                triggerConfetti();
-            }
-
-            // Control Buttons Switch
-            document.getElementById('btn-reveal').classList.add('hidden');
-            document.getElementById('btn-next').classList.remove('hidden');
-        }
-
-        // Advance to next stage or finish
-        function nextStage() {
-            currentStageIndex++;
-            if (currentStageIndex < activeQuizList.length) {
-                loadStage(currentStageIndex);
-            } else {
-                showResults();
-            }
-        }
-
-        // Display game completion screen
-        function showResults() {
-            clearInterval(timerInterval);
-            document.getElementById('game-screen').classList.remove('flex');
-            document.getElementById('game-screen').classList.add('hidden');
-            document.getElementById('result-screen').classList.remove('hidden');
-            
-            // Massive confetti burst upon finishing all stages
-            let duration = 3 * 1000;
-            let end = Date.now() + duration;
-
-            (function frame() {
-                confetti({
-                    particleCount: 5,
-                    angle: 60,
-                    spread: 55,
-                    origin: { x: 0 }
-                });
-                confetti({
-                    particleCount: 5,
-                    angle: 120,
-                    spread: 55,
-                    origin: { x: 1 }
-                });
-
-                if (Date.now() < end) {
-                    requestAnimationFrame(frame);
-                }
-            }());
-        }
-
-        // Reset game to lobby
-        function restartGame() {
-            document.getElementById('result-screen').classList.add('hidden');
-            document.getElementById('intro-screen').classList.remove('hidden');
-        }
-    </script>
 </body>
 </html>
